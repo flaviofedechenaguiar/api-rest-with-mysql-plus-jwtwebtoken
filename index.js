@@ -60,12 +60,12 @@ app.put('/game/:id', async (req, res) => {
 });
 
 
-app.delete('/game/:id', (req, res) => {
+app.delete('/game/:id', async (req, res) => {
     let id = req.params.id;
-    try{
-        Game.destroy(id);
+    try {
+        await Game.destroy({ where: { id } });
         res.sendStatus(200);
-    }catch(err){
+    } catch (err) {
         res.sendStatus(404);
     }
 });
