@@ -11,22 +11,19 @@ app.use(bodyParser.json());
 app.get('/games', async (req, res) => {
     try {
         let games = await Game.findAll();
-        res.json(games);
-        res.statusCode = 200;
-
+        res.json(games).status(200);
     } catch (err) {
         res.sendStatus(400);
     }
 });
 
-app.get("/game/:id", async (req, res) => {
+app.get('/game/:id', async (req, res) => {
     try {
         if (isNaN(req.params.id)) {
             res.sendStatus(400);
         } else {
             let game = await Game.findByPk(req.params.id);
-            res.json(game);
-            res.statusCode(200);
+            res.json(game).status(200);
         }
     } catch (err) {
         res.sendStatus(400);
@@ -35,19 +32,31 @@ app.get("/game/:id", async (req, res) => {
 
 app.post('/game', async (req, res) => {
     let { title, year, price } = req.body;
-    if (title == '') {
+    if (title == '' || isNaN(year) || isNaN(price)) {
         res.sendStatus(400);
+    } else {
+        try {
+            await Game.create({ title, year, price });
+            res.sendStatus(200);
+        } catch (err) {
+            res.sendStatus(404);
+        }
     }
-    if (isNaN(year)) {
-        res.sendStatus(400);
-    }
-    if (isNaN(price)) {
-        res.sendStatus(400);
-    }
+});
 
-   await Game.create({ title, year, price });
-    res.sendStatus(200);
-
+app.put('/game/:id', async (req, res) => {
+    let id = req.params.id
+    let { title, year, price } = req.body;
+    try {
+        Game.update({
+            title,
+            year,
+            price
+        }, { where: { id } });
+        res.sendStatus(200);
+    } catch (err) {
+        res.sendStatus(404);
+    }
 });
 
 
