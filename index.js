@@ -60,7 +60,15 @@ app.put('/game/:id', async (req, res) => {
 });
 
 
-
+app.delete('/game/:id', (req, res) => {
+    let id = req.params.id;
+    try{
+        Game.destroy(id);
+        res.sendStatus(200);
+    }catch(err){
+        res.sendStatus(404);
+    }
+});
 
 authenticateDatabase = async () => {
     try {
