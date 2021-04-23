@@ -59,7 +59,6 @@ app.put('/game/:id', async (req, res) => {
     }
 });
 
-
 app.delete('/game/:id', async (req, res) => {
     let id = req.params.id;
     try {
