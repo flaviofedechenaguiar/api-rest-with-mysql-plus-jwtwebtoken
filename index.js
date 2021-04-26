@@ -7,19 +7,41 @@ const jwt = require('jsonwebtoken');
 
 const JWTSECRET = 'jtsSc,j8}pCg,vLW9_9c;Qc@;L0jYpvy)q#P-Q0$8Ymgni8y5c';
 
+
 const Game = require('./models/game.js');
 const User = require('./models/user.js');
 
 let { Op } = require('sequelize');
 
+
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get('/games', async (req, res) => {
+const auth = function (req, res, next) {
+    const authToken = req.headers['authorization'];
+    if (authToken) {
+        const bearer = authToken.split(' ');
+        let token = bearer[1];
+        jwt.verify(token, JWTSECRET, (err, data) => {
+            if (!err) {
+                req.token = token;
+                req.loggedUser = { id: data.id, email: data.email };
+                next();
+            } else {
+                res.status(401).json({ error: 'Token Inválido' });
+            }
+        });
+    } else {
+        res.status(401).json({ error: 'Token inválido' });
+    }
+};
+
+app.get('/games', auth, async (req, res) => {
     try {
+
         let games = await Game.findAll();
-        res.json(games).status(200);
+        res.status(200).json({ user: req.loggedUser, games: games });
     } catch (err) {
         res.sendStatus(400);
     }
@@ -31,7 +53,7 @@ app.get('/game/:id', async (req, res) => {
             res.sendStatus(400);
         } else {
             let game = await Game.findByPk(req.params.id);
-            res.json(game).status(200);
+            res.status(200).json(game);
         }
     } catch (err) {
         res.sendStatus(400);
@@ -109,15 +131,15 @@ app.post('/auth', async (req, res) => {
                 if (user.password == password) {
                     try {
                         let token = jwt.sign({ id: user.id, email: user.email }, JWTSECRET, { expiresIn: '48h' });
-                        res.json({ token }).status(200);;
+                        res.status(200).json({ token });
                     } catch (err) {
                         res.sendStatus(404);
                     }
                 } else {
-                    res.json({ error: 'Senha incorreta' }).status(401);
+                    res.status(401).json({ error: 'Senha incorreta' });
                 }
             } else {
-                res.json({ error: 'Email não encontrado' }).status(404);
+                res.status(404).json({ error: 'Email não encontrado' });
             }
 
         } catch (err) {
