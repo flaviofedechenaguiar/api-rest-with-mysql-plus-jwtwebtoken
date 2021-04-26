@@ -2,11 +2,13 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const connection = require('./database/database');
-const cors = require(cors);
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
+const JWTSECRET = 'jtsSc,j8}pCg,vLW9_9c;Qc@;L0jYpvy)q#P-Q0$8Ymgni8y5c';
 
 const Game = require('./models/game.js');
-const User = require('./models/user.js'); 
+const User = require('./models/user.js');
 
 let { Op } = require('sequelize');
 
@@ -105,7 +107,12 @@ app.post('/auth', async (req, res) => {
 
             if (user) {
                 if (user.password == password) {
-                    res.json('FAKE TOKEN').status(200);;
+                    try {
+                        let token = jwt.sign({ id: user.id, email: user.email }, JWTSECRET, { expiresIn: '48h' });
+                        res.json({ token }).status(200);;
+                    } catch (err) {
+                        res.sendStatus(404);
+                    }
                 } else {
                     res.json({ error: 'Senha incorreta' }).status(401);
                 }
